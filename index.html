@@ -1,0 +1,1261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Ethiopian Exam Prep</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter,Arial,sans-serif;
+  background:#f4f7f9;
+  color:#101828
+}
+
+.wrap{
+  max-width:950px;
+  margin:auto;
+  padding:18px
+}
+
+.hide{
+  display:none!important
+}
+
+.card{
+  background:#fff;
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 10px 30px #10182812
+}
+
+.auth{
+  max-width:430px;
+  margin:7vh auto;
+  text-align:center
+}
+
+.logo{
+  font-size:38px
+}
+
+.tabs{
+  display:flex;
+  background:#f2f4f7;
+  border-radius:12px;
+  padding:4px;
+  margin:20px 0
+}
+
+.tabs button{
+  flex:1;
+  border:0;
+  background:transparent;
+  padding:11px;
+  border-radius:9px;
+  font-weight:700
+}
+
+.tabs .on{
+  background:#fff
+}
+
+.auth input{
+  width:100%;
+  padding:14px;
+  border:1px solid #d0d5dd;
+  border-radius:12px;
+  margin:7px 0;
+  font-size:15px
+}
+
+.btn{
+  border:0;
+  border-radius:12px;
+  padding:13px 16px;
+  font-weight:800;
+  cursor:pointer
+}
+
+.green{
+  background:#12b76a;
+  color:#fff;
+  width:100%;
+  margin-top:10px
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px
+}
+
+.hero{
+  margin-top:15px;
+  background:#101828;
+  color:#fff;
+  border-radius:25px;
+  padding:28px
+}
+
+.hero h1{
+  font-size:30px;
+  margin:8px 0
+}
+
+.pill{
+  display:inline-block;
+  background:#12b76a;
+  border-radius:99px;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:800
+}
+
+.stats,
+.subjects,
+.features{
+  display:grid;
+  gap:12px;
+  margin-top:14px
+}
+
+.stats{
+  grid-template-columns:repeat(3,1fr)
+}
+
+.subjects{
+  grid-template-columns:repeat(3,1fr)
+}
+
+.features{
+  grid-template-columns:repeat(4,1fr)
+}
+
+.stat,
+.subject,
+.feature{
+  background:#fff;
+  border:1px solid #eaecf0;
+  border-radius:17px;
+  padding:16px
+}
+
+.stat small,
+.subject small,
+.feature small{
+  display:block;
+  color:#667085;
+  margin-top:5px
+}
+
+.subject,
+.feature{
+  cursor:pointer;
+  text-align:left
+}
+
+.q{
+  margin-top:20px
+}
+
+.option{
+  display:block;
+  width:100%;
+  text-align:left;
+  background:#fff;
+  border:1px solid #d0d5dd;
+  border-radius:13px;
+  padding:14px;
+  margin:9px 0;
+  cursor:pointer
+}
+
+.option.correct{
+  background:#ecfdf3;
+  border-color:#12b76a
+}
+
+.option.wrong{
+  background:#fef3f2;
+  border-color:#f04438
+}
+
+.bar{
+  height:7px;
+  background:#e4e7ec;
+  border-radius:99px;
+  margin-top:14px
+}
+
+.bar i{
+  display:block;
+  height:100%;
+  background:#12b76a;
+  border-radius:99px
+}
+
+.row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px;
+  border:1px solid #eaecf0;
+  border-radius:13px;
+  margin:8px 0
+}
+
+.rank{
+  width:45px;
+  font-size:20px;
+  font-weight:800
+}
+
+.score{
+  margin-left:auto;
+  font-weight:800
+}
+
+.muted{
+  color:#667085
+}
+
+@media(max-width:650px){
+
+  .subjects{
+    grid-template-columns:repeat(2,1fr)
+  }
+
+  .features{
+    grid-template-columns:repeat(2,1fr)
+  }
+
+  .stats{
+    grid-template-columns:1fr
+  }
+
+  .hero h1{
+    font-size:25px
+  }
+}
+/* MOBILE */
+@media (max-width:600px){
+  body{
+    overflow-x:hidden;
+  }
+
+  .wrap{
+    width:100%;
+    max-width:100%;
+    padding:0 12px;
+  }
+
+  .subjects{
+    grid-template-columns:1fr 1fr !important;
+    gap:10px !important;
+  }
+
+  .subject{
+    min-width:0;
+    width:100%;
+  }
+
+  .subject b{
+    font-size:14px;
+  }
+
+  .subject small{
+    font-size:11px;
+  }
+
+  .stats{
+    grid-template-columns:1fr 1fr 1fr !important;
+    gap:6px !important;
+  }
+
+  button{
+    max-width:100%;
+  }
+
+  input{
+    max-width:100%;
+  }
+
+  #question{
+    max-width:100%;
+    overflow-wrap:anywhere;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<!-- LOGIN -->
+<section id="login" class="auth">
+
+  <div class="logo">🇪🇹</div>
+
+  <h1>Ethiopian Exam Prep</h1>
+
+  <p class="muted">
+    Practice • Improve • Compete
+  </p>
+
+  <div class="card">
+
+    <div class="tabs">
+      <button id="lt" class="on">Login</button>
+      <button id="st">Create account</button>
+    </div>
+
+    <input id="name"
+           placeholder="Full name">
+
+    <input id="email"
+           type="email"
+           placeholder="Email">
+
+    <input id="pass"
+           type="password"
+           placeholder="Password">
+
+    <button id="auth"
+            class="btn green">
+      Login
+    </button>
+
+    <p id="msg" class="muted"></p>
+
+  </div>
+
+</section>
+
+
+<!-- HOME -->
+<section id="home" class="hide">
+
+  <div class="top">
+
+    <div>
+      <small class="muted">
+        ETHIOPIAN EXAM PREP
+      </small>
+
+      <h2 id="welcome">
+        Welcome 👋
+      </h2>
+    </div>
+
+    <button id="logout"
+            class="btn">
+      Logout
+    </button>
+
+  </div>
+
+
+  <div class="hero">
+
+    <span class="pill">
+      GRADE 12
+    </span>
+
+    <h1>
+      Prepare. Practice. Compete.
+    </h1>
+
+    <p>
+      Master your subjects and climb the leaderboard.
+    </p>
+
+  </div>
+
+
+  <div class="stats">
+
+    <div class="stat">
+      <small>Personal best</small>
+      <b id="best">—</b>
+    </div>
+
+    <div class="stat">
+      <small>Questions solved</small>
+      <b id="solved">0</b>
+    </div>
+
+    <div class="stat">
+      <small>Correct answers</small>
+      <b id="correct">0</b>
+    </div>
+
+  </div>
+
+
+  <h3>
+    Subjects
+  </h3>
+
+  <div id="subjects"
+       class="subjects">
+  </div>
+
+
+  <div class="features">
+
+    <button class="feature"
+            id="mock">
+
+      🎯 <b>Mock Exam</b>
+
+      <small>
+        Challenge yourself
+      </small>
+
+    </button>
+
+
+    <button class="feature"
+            id="board">
+
+      🏆 <b>Leaderboard</b>
+
+      <small>
+        Top students
+      </small>
+
+    </button>
+
+
+    <button class="feature"
+            id="profile">
+
+      👤 <b>My Profile</b>
+
+      <small>
+        Your progress
+      </small>
+
+    </button>
+
+
+    <button class="feature"
+            id="random">
+
+      🎲 <b>Random Practice</b>
+
+      <small>
+        Any subject
+      </small>
+
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- EXAM -->
+<section id="exam" class="hide">
+
+  <div class="top">
+
+    <button id="back"
+            class="btn">
+      ← Home
+    </button>
+
+    <b id="exname">
+      Physics
+    </b>
+
+    <b id="prog">
+      1/20
+    </b>
+
+  </div>
+
+
+  <div class="bar">
+    <i id="bar"></i>
+  </div>
+
+
+  <div class="card q">
+
+    <small id="qn"
+           class="muted">
+      QUESTION 1
+    </small>
+
+    <h2 id="qt">
+      Loading...
+    </h2>
+
+    <div id="opts"></div>
+
+    <p id="fb"></p>
+
+    <button id="next"
+            class="btn green"
+            disabled>
+      Next Question →
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- LEADERBOARD -->
+<section id="boardview"
+         class="hide">
+
+  <div class="top">
+
+    <button id="bb"
+            class="btn">
+      ← Home
+    </button>
+
+    <h2>
+      🏆 Leaderboard
+    </h2>
+
+    <span></span>
+
+  </div>
+
+
+  <div class="card">
+
+    <p class="muted">
+      Best mock-exam score
+    </p>
+
+    <div id="list"></div>
+
+  </div>
+
+</section>
+
+
+<!-- PROFILE -->
+<section id="profileview"
+         class="hide">
+
+  <div class="top">
+
+    <button id="pb"
+            class="btn">
+      ← Home
+    </button>
+
+    <h2>
+      👤 My Profile
+    </h2>
+
+    <span></span>
+
+  </div>
+
+
+  <div id="pbox"
+       class="card">
+  </div>
+
+</section>
+
+</div>
+
+
+<script>
+
+const SUPABASE_URL = "https://cvdrfzcyolijthcalnvc.supabase.co";
+const SUPABASE_KEY = window.SUPABASE_ANON_KEY;
+
+let sb = null;
+
+try {
+  sb = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+  console.log("SUPABASE CONNECTED");
+} catch (err) {
+  console.error("SUPABASE ERROR:", err);
+}
+
+const subjects = [
+  "English",
+  "Mathematics",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Geography",
+  "History",
+  "Civics",
+  "Economics",
+  "General Knowledge",
+  "Aptitude (SAT)"
+];
+
+
+const icons = [
+  "📖",
+  "📐",
+  "⚡",
+  "🧪",
+  "🧬",
+  "🌍",
+  "🏛️",
+  "⚖️",
+  "📊",
+  "🧠",
+  "🎯"
+];
+
+
+let qs = [];
+let user = null;
+let idx = 0;
+let chosen = null;
+let correct = 0;
+let solved = 0;
+let mode = "practice";
+let pool = [];
+
+
+const $ =
+  x => document.getElementById(x);
+
+
+const show =
+  x =>
+  ["login","home","exam","boardview","profileview"]
+  .forEach(
+    y =>
+    $(y).classList.toggle("hide", y !== x)
+  );
+
+
+async function init(){
+
+  qs =
+    await fetch("questions.json")
+      .then(r => r.json())
+      .catch(() => []);
+
+
+  $("subjects").innerHTML =
+    subjects
+      .map(
+        (s,i) =>
+        `<button class="subject"
+          onclick="start('${s}')">
+          ${icons[i]}
+          <b>${s}</b>
+          <small>Practice →</small>
+        </button>`
+      )
+      .join("");
+
+
+  if(sb){
+
+    let s =
+      (await sb.auth.getSession())
+      .data.session;
+
+
+    if(s){
+
+      user = s.user;
+
+      dash();
+
+    }else{
+
+      show("login");
+
+    }
+
+
+    sb.auth.onAuthStateChange(
+      (_e,s) => {
+
+        user = s?.user || null;
+
+        if(user)
+          dash();
+
+      }
+    );
+
+  }else{
+
+    show("login");
+
+  }
+
+}
+
+
+let signup = false;
+
+
+$("lt").onclick = () => {
+
+  signup = false;
+
+  $("lt").classList.add("on");
+
+  $("st").classList.remove("on");
+
+  $("name").classList.add("hide");
+
+  $("auth").textContent = "Login";
+
+};
+
+
+$("st").onclick = () => {
+
+  signup = true;
+
+  $("st").classList.add("on");
+
+  $("lt").classList.remove("on");
+
+  $("name").classList.remove("hide");
+
+  $("auth").textContent = "Create account";
+
+};
+;
+$("name").classList.add("hide");
+
+$("auth").onclick = async () => {
+
+  $("msg").textContent = sb
+    ? "SUPABASE IS CONNECTED"
+    : "SUPABASE IS NOT CONNECTED";
+
+  if(!sb){
+
+    return;
+
+  }
+
+
+  let e =
+    $("email").value.trim();
+
+  let p =
+    $("pass").value;
+
+
+  if(!e || !p){
+
+    $("msg").textContent =
+      "Please enter email and password.";
+
+    return;
+
+  }
+
+
+  if(signup){
+
+    let n =
+      $("name").value.trim();
+
+
+    let r =
+      await sb.auth.signUp({
+
+        email:e,
+
+        password:p,
+
+        options:{
+          data:{
+            full_name:n
+          }
+        }
+
+      });
+
+
+    $("msg").textContent =
+      r.error?.message ||
+      "Account created. Check email if confirmation is enabled.";
+
+  }else{
+
+    let r =
+      await sb.auth.signInWithPassword({
+
+        email:e,
+
+        password:p
+
+      });
+
+
+    if(r.error){
+
+      $("msg").textContent =
+        r.error.message;
+
+    }
+
+  }
+
+};
+
+
+$("logout").onclick =
+  () => sb.auth.signOut();
+
+
+$("back").onclick =
+  dash;
+
+
+$("bb").onclick =
+  dash;
+
+
+$("pb").onclick =
+  dash;
+
+
+async function profile(){
+
+  let r =
+    await sb
+      .from("profiles")
+      .select("*")
+      .eq("id",user.id)
+      .single();
+
+
+  return r.data;
+
+}
+
+
+async function dash(){
+
+  show("home");
+
+
+  let p =
+    await profile();
+
+
+  let n =
+    p?.full_name ||
+    user.email.split("@")[0];
+
+
+  $("welcome").textContent =
+    "Welcome, " + n + " 👋";
+
+
+  $("best").textContent =
+    p?.best_score
+    ? `${p.best_score}/${p.best_total}`
+    : "—";
+
+
+  $("solved").textContent =
+    p?.questions_solved || 0;
+
+
+  $("correct").textContent =
+    p?.correct_answers || 0;
+
+}
+
+
+function start(subject,isMock=false){
+
+  mode =
+    isMock
+    ? "mock"
+    : "practice";
+
+
+  pool =
+    qs
+      .filter(q => isMock || q.subject === subject)
+      .sort(() => Math.random()-.5)
+      .slice(
+        0,
+        isMock
+        ? Math.min(30,qs.length)
+        : 20
+      );
+
+
+  if(!pool.length){
+
+    alert(
+      "No questions for this subject yet."
+    );
+
+    return;
+
+  }
+
+
+  idx = 0;
+
+  chosen = null;
+
+  correct = 0;
+
+  solved = 0;
+
+
+  $("exname").textContent =
+    isMock
+    ? "Mock Exam"
+    : subject;
+
+
+  show("exam");
+
+  render();
+
+}
+
+
+function render(){
+
+  let q =
+    pool[idx];
+
+
+  $("prog").textContent =
+    `${idx+1}/${pool.length}`;
+
+
+  $("qn").textContent =
+    `QUESTION ${idx+1}`;
+
+
+  $("qt").textContent =
+    q.question;
+
+
+  $("bar").style.width =
+    (idx/pool.length*100) + "%";
+
+
+  $("fb").textContent = "";
+
+
+  $("next").disabled = true;
+
+
+  $("opts").innerHTML =
+    q.options
+      .map(
+        (o,i) =>
+        `<button
+          class="option"
+          data-i="${i}">
+          ${String.fromCharCode(65+i)}. ${o}
+        </button>`
+      )
+      .join("");
+
+
+  document
+    .querySelectorAll(".option")
+    .forEach(
+      b =>
+      b.onclick =
+      () => answer(+b.dataset.i)
+    );
+
+}
+
+
+function answer(i){
+
+  if(chosen !== null)
+    return;
+
+
+  chosen = i;
+
+  solved++;
+
+
+  let q =
+    pool[idx];
+
+
+  let ok =
+    i === q.answer;
+
+
+  if(ok)
+    correct++;
+
+
+  document
+    .querySelectorAll(".option")
+    .forEach(
+      (b,j) => {
+
+        b.disabled = true;
+
+
+        if(j === q.answer)
+          b.classList.add("correct");
+
+
+        if(j === i && !ok)
+          b.classList.add("wrong");
+
+      }
+    );
+
+
+  $("fb").textContent =
+    ok
+    ? "✅ Correct!"
+    : "❌ Incorrect — correct answer: " +
+      q.options[q.answer];
+
+
+  $("next").disabled = false;
+
+}
+
+
+$("next").onclick =
+  async () => {
+
+    if(idx < pool.length-1){
+
+      idx++;
+
+      chosen = null;
+
+      render();
+
+    }else{
+
+      let p =
+        await profile();
+
+
+      let oldBest = Number(p?.best_score || 0);
+let newBest = oldBest;
+
+if (Number(correct) > oldBest) {
+  newBest = Number(correct);
+}
+
+
+const updated = await sb
+  .from("profiles")
+  .update({
+    best_score: newBest,
+    best_total: pool.length,
+    questions_solved: (p?.questions_solved || 0) + solved,
+    correct_answers: (p?.correct_answers || 0) + correct
+  })
+  .eq("id", user.id)
+  .select()
+  .single();
+
+if (updated.error) {
+  console.error("PROFILE UPDATE ERROR:", updated.error);
+  alert("Profile update error: " + updated.error.message);
+  return;
+}
+
+console.log("PROFILE UPDATED:", updated.data);
+if (updated.error) {
+  console.error("PROFILE UPDATE ERROR:", updated.error);
+  alert("Profile update error: " + updated.error.message);
+  return;
+}
+
+console.log("PROFILE UPDATED:", updated.data);
+
+
+      if(mode === "mock"){
+
+        await sb
+          .from("exam_results")
+          .insert({
+
+            user_id:user.id,
+
+            score:correct,
+
+            total:pool.length,
+
+            subject:"Mock Exam"
+
+          });
+
+      }
+
+
+ alert(
+  `Finished! Score: ${correct}/${pool.length}`
+);
+
+
+      dash();
+
+    }
+
+  };
+
+
+$("mock").onclick =
+  () => start(null,true);
+
+
+$("random").onclick = () => {
+  mode = "practice";
+
+  pool = [...qs]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 20);
+
+  if(!pool.length){
+    alert("No questions available yet.");
+    return;
+  }
+
+  idx = 0;
+  chosen = null;
+  correct = 0;
+  solved = 0;
+
+  $("exname").textContent = "Random Practice";
+  show("exam");
+  render();
+};
+
+$("board").onclick =
+  async () => {
+
+    show("boardview");
+
+
+    let r =
+      await sb
+        .from("profiles")
+        .select(
+          "full_name,best_score,best_total"
+        )
+        .order(
+          "best_score",
+          {ascending:false}
+        )
+        .limit(100);
+
+
+    $("list").innerHTML =
+      (r.data||[])
+      .map(
+        (p,i) =>
+        `<div class="row">
+
+          <div class="rank">
+            ${
+              i<3
+              ? ["🥇","🥈","🥉"][i]
+              : "#"+(i+1)
+            }
+          </div>
+
+          <div>
+            <b>${p.full_name}</b>
+          </div>
+
+          <div class="score">
+            ${p.best_score}/${p.best_total}
+          </div>
+
+        </div>`
+      )
+      .join("");
+
+  };
+
+
+$("profile").onclick =
+  async () => {
+
+    show("profileview");
+
+
+    let p =
+      await profile();
+
+
+    $("pbox").innerHTML =
+      `<h2>
+        ${p?.full_name||"Student"}
+      </h2>
+
+      <p class="muted">
+        ${user.email}
+      </p>
+
+      <hr>
+
+      <p>
+        🏆 Best:
+        <b>
+          ${p?.best_score||0}/${p?.best_total||600}
+        </b>
+      </p>
+
+      <p>
+        📝 Solved:
+        <b>
+          ${p?.questions_solved||0}
+        </b>
+      </p>
+
+      <p>
+        ✅ Correct:
+        <b>
+          ${p?.correct_answers||0}
+        </b>
+      </p>`;
+
+  };
+
+
+console.log("JS OK");
+init();
+
+</script>
+
+</body>
+</html>
