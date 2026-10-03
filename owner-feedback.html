@@ -191,9 +191,45 @@ status.textContent =
   : "No feedback yet.";
 
 list.innerHTML = "";
+data.forEach(async item => {
 
-data.forEach(item => {
-const div =
+  const div = document.createElement("div");
+
+  div.className = "feedback";
+
+  let name = "Unknown user";
+
+  const { data: profile } =
+    await sb
+      .from("profiles")
+      .select("full_name")
+      .eq("id", item.user_id)
+      .maybeSingle();
+
+  if (profile?.full_name) {
+    name = profile.full_name;
+  }
+
+  div.innerHTML = `
+    <div>
+      <strong>👤 Name:</strong>
+      ${name}
+    </div>
+
+    <div>
+      <strong>💬 Message:</strong>
+      ${item.message}
+    </div>
+
+    <div>
+      <strong>🕐 Date:</strong>
+      ${new Date(item.created_at).toLocaleString()}
+    </div>
+  `;
+
+  list.appendChild(div);
+
+});
   document.createElement("div");
 
 div.className = "feedback";
