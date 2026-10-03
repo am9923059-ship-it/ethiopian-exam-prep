@@ -522,6 +522,66 @@ body{
 </section>
 
 
+<!-- RESULT -->
+<section id="resultview"
+         class="hide">
+
+  <div class="card"
+       style="text-align:center;">
+
+    <div style="font-size:55px;">
+      🏆
+    </div>
+
+    <h1>Exam Complete!</h1>
+
+    <p class="muted"
+       id="resultExam">
+      Mock Exam
+    </p>
+
+    <div class="stats"
+         style="margin:20px 0;">
+
+      <div class="stat">
+        <b id="resultScore">0/20</b>
+        <small>Score</small>
+      </div>
+
+      <div class="stat">
+        <b id="resultPercent">0%</b>
+        <small>Percentage</small>
+      </div>
+
+      <div class="stat">
+        <b id="resultCorrect">0</b>
+        <small>Correct</small>
+      </div>
+
+    </div>
+
+    <p id="resultWrong"
+       class="muted">
+      ❌ Wrong: 0
+    </p>
+
+    <button id="tryAgain"
+            class="btn green"
+            style="width:100%;margin-top:12px;">
+      🔄 Try Again
+    </button>
+
+    <button id="resultHome"
+            class="btn"
+            style="width:100%;margin-top:8px;">
+      🏠 Back to Home
+    </button>
+
+  </div>
+
+</section>
+
+
 <!-- LEADERBOARD -->
 <section id="boardview"
          class="hide">
@@ -1162,16 +1222,49 @@ console.log("PROFILE UPDATED");
       }
 
 
- alert(
-  `Finished! Score: ${correct}/${pool.length}`
-);
+ $("resultExam").textContent =
+  mode === "mock"
+  ? "Mock Exam"
+  : "Practice";
 
+ $("resultScore").textContent =
+  `${correct}/${pool.length}`;
 
-      dash();
+ $("resultPercent").textContent =
+  `${Math.round((correct / pool.length) * 100)}%`;
+
+ $("resultCorrect").textContent =
+  correct;
+
+ $("resultWrong").textContent =
+  `❌ Wrong: ${pool.length - correct}`;
+
+ show("resultview");
 
     }
 
   };
+
+
+$("tryAgain").onclick = () => {
+
+  show("exam");
+
+  idx = 0;
+  chosen = null;
+  correct = 0;
+  solved = 0;
+
+  render();
+
+};
+
+
+$("resultHome").onclick = () => {
+
+  dash();
+
+};
 
 
 $("mock").onclick =
