@@ -94,19 +94,19 @@ async function loadFeedback(){
 
   try{
 
-    const {
-      data:{user},
-      error:userError
-    } = await sb.auth.getUser();
+const {
+  data:{session}
+} = await sb.auth.getSession();
 
-    if(userError || !user){
+const user = session?.user;
 
-      status.textContent =
-        "Please login first.";
+if(!user){
 
-      return;
-    }
+  status.textContent =
+    "Please login first.";
 
+  return;
+}
     if(user.id !== OWNER_ID){
 
       status.textContent =
