@@ -1193,12 +1193,11 @@ $("board").onclick =
 
     show("boardview");
 
-
     let r =
       await sb
         .from("profiles")
         .select(
-          "full_name,best_score,best_total"
+          "id,full_name,best_score,best_total"
         )
         .order(
           "best_score",
@@ -1206,9 +1205,22 @@ $("board").onclick =
         )
         .limit(100);
 
+    let rows = r.data || [];
+
+    let myIndex =
+      rows.findIndex(
+        p => p.id === user.id
+      );
 
     $("list").innerHTML =
-      (r.data||[])
+      (myIndex >= 0
+        ? `<div class="card"
+                style="margin-bottom:12px;text-align:center;">
+             <b>🏆 Your Rank: #${myIndex + 1}</b>
+           </div>`
+        : "") +
+
+      rows
       .map(
         (p,i) =>
         `<div class="row">
