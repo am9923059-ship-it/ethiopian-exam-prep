@@ -645,13 +645,25 @@ const $ =
   x => document.getElementById(x);
 
 
-const show =
-  x =>
+function show(x, fromBack = false){
+
   ["login","home","exam","boardview","profileview"]
   .forEach(
     y =>
     $(y).classList.toggle("hide", y !== x)
   );
+
+  if(!fromBack){
+
+    history.pushState(
+      {appPage:x},
+      "",
+      location.href
+    );
+
+  }
+
+}
 
 
 async function init(){
@@ -1381,6 +1393,38 @@ init();
 })();
 </script>
 
-</body>
+
+<script>
+(function(){
+
+  history.replaceState(
+    {appPage:"home"},
+    "",
+    location.href
+  );
+
+  window.addEventListener("popstate", function(e){
+
+    if(e.state && e.state.appPage){
+
+      show(e.state.appPage, true);
+
+    }else{
+
+      history.pushState(
+        {appPage:"home"},
+        "",
+        location.href
+      );
+
+      show("home", true);
+
+    }
+
+  });
+
+})();
+</script>
+\n</body>
 </html>
 
