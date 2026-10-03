@@ -326,15 +326,20 @@ body{
            type="email"
            placeholder="Email">
 
-    <input id="pass"
-           type="password"
-           placeholder="Password">
+<input id="pass"
+       type="password"
+       placeholder="Password">
 
-    <button id="auth"
-            class="btn green">
-      Login
-    </button>
+<button id="forgot"
+        class="muted"
+        style="background:none;border:0;cursor:pointer;">
+  Forgot password?
+</button>
 
+<button id="auth"
+        class="btn green">
+  Login
+</button>
     <p id="msg" class="muted"></p>
 
   </div>
@@ -829,6 +834,37 @@ $("logout").onclick =
   () => sb.auth.signOut();
 
 
+$("forgot").onclick = async () => {
+
+  if(!sb){
+    $("msg").textContent =
+      "SUPABASE IS NOT CONNECTED";
+    return;
+  }
+
+  let e =
+    $("email").value.trim();
+
+  if(!e){
+    $("msg").textContent =
+      "Enter your email first.";
+    return;
+  }
+
+  let r =
+    await sb.auth.resetPasswordForEmail(e, {
+      redirectTo:
+        "https://ethiopian-exam-prep.onrender.com"
+    });
+
+  $("msg").textContent =
+    r.error?.message ||
+    "Password reset link sent. Check your email.";
+
+};
+
+
+
 $("back").onclick =
   dash;
 
@@ -848,10 +884,10 @@ async function profile(){
       .from("profiles")
       .select("*")
       .eq("id",user.id)
-      .single();
+      .limit(1);
 
 
-  return r.data;
+  return r.data?.[0] || null;
 
 }
 
@@ -1082,9 +1118,7 @@ const updated = await sb
     questions_solved: (p?.questions_solved || 0) + solved,
     correct_answers: (p?.correct_answers || 0) + correct
   })
-  .eq("id", user.id)
-  .select()
-  .single();
+  .eq("id", user.id);
 
 if (updated.error) {
   console.error("PROFILE UPDATE ERROR:", updated.error);
@@ -1092,15 +1126,7 @@ if (updated.error) {
   return;
 }
 
-console.log("PROFILE UPDATED:", updated.data);
-if (updated.error) {
-  console.error("PROFILE UPDATE ERROR:", updated.error);
-  alert("Profile update error: " + updated.error.message);
-  return;
-}
-
-console.log("PROFILE UPDATED:", updated.data);
-
+console.log("PROFILE UPDATED");
 
       if(mode === "mock"){
 
