@@ -1314,6 +1314,73 @@ init();
 
 </script>
 
+
+<script>
+(function(){
+
+  let backHistory = [];
+
+  function rememberPage(page){
+    if(
+      backHistory.length === 0 ||
+      backHistory[backHistory.length - 1] !== page
+    ){
+      backHistory.push(page);
+    }
+  }
+
+  const originalShow = window.show;
+
+  window.show = function(page){
+
+    if(
+      backHistory.length === 0 ||
+      backHistory[backHistory.length - 1] !== page
+    ){
+      backHistory.push(page);
+    }
+
+    return originalShow(page);
+  };
+
+  history.pushState(
+    {appPage:true},
+    "",
+    location.href
+  );
+
+  window.addEventListener("popstate", function(){
+
+    if(backHistory.length > 1){
+
+      backHistory.pop();
+
+      const previous =
+        backHistory[backHistory.length - 1];
+
+      originalShow(previous);
+
+      history.pushState(
+        {appPage:true},
+        "",
+        location.href
+      );
+
+    }else{
+
+      history.pushState(
+        {appPage:true},
+        "",
+        location.href
+      );
+
+    }
+
+  });
+
+})();
+</script>
+
 </body>
 </html>
 
