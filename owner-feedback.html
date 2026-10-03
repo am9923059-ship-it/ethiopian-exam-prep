@@ -185,41 +185,37 @@ if(!user){
 }
     if(user.id !== OWNER_ID){
 
-      status.textContent =
-        "🔒 Owner access only.";
+status.textContent =
+  data.length
+  ? data.length + " feedback message(s)"
+  : "No feedback yet.";
 
-      return;
-    }
+list.innerHTML = "";
 
-    const {data,error} =
-      await sb
-      .from("feedback")
-      .select("id,message,created_at")
-      .order("created_at",{ascending:false});
+data.forEach(item => {
+const div =
+  document.createElement("div");
 
-    if(error){
+div.className = "feedback";
 
-      console.error(error);
+div.innerHTML = `
+  <div>
+    <strong>👤 User ID:</strong>
+    ${item.user_id}
+  </div>
 
-      status.textContent =
-        "Failed to load feedback.";
+  <div>
+    <strong>💬 Message:</strong>
+    ${item.message}
+  </div>
 
-      return;
-    }
+  <div>
+    <strong>🕐 Date:</strong>
+    ${new Date(item.created_at).toLocaleString()}
+  </div>
+`;
 
-    status.textContent =
-      data.length
-      ? data.length + " feedback message(s)"
-      : "No feedback yet.";
-
-    list.innerHTML = "";
-
-    data.forEach(item => {
-
-      const div =
-        document.createElement("div");
-
-      div.className = "feedback";
+list.appendChild(div);
 
       div.innerHTML = `
         <div class="message"></div>
