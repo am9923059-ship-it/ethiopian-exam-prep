@@ -1223,9 +1223,21 @@ $("board").onclick =
       rows
       .map(
         (p,i) =>
-        `<div class="row">
+        `<div class="row"
+              style="
+                display:grid;
+                grid-template-columns:50px 1fr auto;
+                align-items:center;
+                gap:10px;
+                margin-bottom:8px;
+                padding:12px;
+                border-radius:14px;
+                background:rgba(255,255,255,.05);
+              ">
 
-          <div class="rank">
+          <div class="rank"
+               style="font-size:${i<3 ? "25px" : "15px"};
+                      text-align:center;">
             ${
               i<3
               ? ["🥇","🥈","🥉"][i]
@@ -1235,10 +1247,14 @@ $("board").onclick =
 
           <div>
             <b>${p.full_name}</b>
+            <div class="muted"
+                 style="font-size:11px;margin-top:3px;">
+              Rank #${i+1}
+            </div>
           </div>
 
           <div class="score">
-            ${p.best_score}/${p.best_total}
+            <b>${p.best_score}</b>/${p.best_total}
           </div>
 
         </div>`
