@@ -1689,8 +1689,7 @@ if(error){
 
 console.error(error);
 
-msg.textContent="Failed to send feedback.";
-
+msg.textContent="ERROR: " + error.message;
 return;
 
 }
