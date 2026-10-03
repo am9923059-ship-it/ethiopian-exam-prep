@@ -59,6 +59,32 @@ h1{
 <p>Private feedback from Ethiopian Exam Prep users.</p>
 
 <div id="status">Loading...</div>
+<div id="ownerLogin">
+
+  <input
+    id="ownerEmail"
+    type="email"
+    placeholder="Owner email"
+    style="width:100%;padding:12px;margin:8px 0;box-sizing:border-box;"
+  >
+
+  <input
+    id="ownerPassword"
+    type="password"
+    placeholder="Password"
+    style="width:100%;padding:12px;margin:8px 0;box-sizing:border-box;"
+  >
+
+  <button
+    onclick="ownerLogin()"
+    style="padding:12px 20px;cursor:pointer;"
+  >
+    🔐 Login
+  </button>
+
+  <div id="loginMsg"></div>
+
+</div>
 
 <div id="feedbackList"></div>
 
@@ -83,6 +109,56 @@ window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
+async function ownerLogin(){
+
+  const email =
+    document.getElementById("ownerEmail").value.trim();
+
+  const password =
+    document.getElementById("ownerPassword").value;
+
+  const msg =
+    document.getElementById("loginMsg");
+
+  if(!email || !password){
+
+    msg.textContent =
+      "Please enter email and password.";
+
+    return;
+  }
+
+  const {data,error} =
+    await sb.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+  if(error){
+
+    msg.textContent =
+      "Login error: " + error.message;
+
+    return;
+  }
+
+  if(data.user.id !== OWNER_ID){
+
+    await sb.auth.signOut();
+
+    msg.textContent =
+      "🔒 Owner access only.";
+
+    return;
+  }
+
+  document.getElementById("ownerLogin").style.display =
+    "none";
+
+  msg.textContent = "";
+
+  loadFeedback();
+}
 
 async function loadFeedback(){
 
@@ -170,7 +246,8 @@ if(!user){
 
 }
 
-loadFeedback();
+document.getElementById("status").textContent =
+  "Please login as owner to view feedback.";
 
 </script>
 
