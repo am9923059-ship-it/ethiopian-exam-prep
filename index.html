@@ -529,9 +529,7 @@ body{
   <div class="card"
        style="text-align:center;">
 
-    <div style="font-size:55px;">
-      🏆
-    </div>
+    <div style="width:105px;height:105px;margin:0 auto 15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:52px;background:rgba(255,193,7,.12);border:2px solid rgba(255,193,7,.35);">🏆</div>
 
     <h1>Exam Complete!</h1>
 
@@ -541,15 +539,15 @@ body{
     </p>
 
     <div class="stats"
-         style="margin:20px 0;">
+         style="margin:24px 0 18px;gap:10px;">
 
       <div class="stat">
-        <b id="resultScore">0/20</b>
+        <b id="resultScore" style="font-size:46px;font-weight:800;">0/20</b>
         <small>Score</small>
       </div>
 
       <div class="stat">
-        <b id="resultPercent">0%</b>
+        <b id="resultPercent" style="font-size:20px;">0%</b>
         <small>Percentage</small>
       </div>
 
@@ -1238,6 +1236,22 @@ console.log("PROFILE UPDATED");
 
  $("resultWrong").textContent =
   `❌ Wrong: ${pool.length - correct}`;
+
+ let percent =
+   Math.round((correct / pool.length) * 100);
+
+ let message =
+   percent >= 80
+   ? "🔥 Excellent! Keep it up!"
+   : percent >= 60
+   ? "👏 Great Job! You are improving!"
+   : percent >= 40
+   ? "💪 Keep Practicing!"
+   : "📚 More Practice Needed.";
+
+ $("resultMessage").textContent =
+   message;
+
 
  show("resultview");
 
