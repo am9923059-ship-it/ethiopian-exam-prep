@@ -1118,7 +1118,10 @@ const updated = await sb
     questions_solved: (p?.questions_solved || 0) + solved,
     correct_answers: (p?.correct_answers || 0) + correct
   })
-  .eq("id", user.id);
+  .eq("id", user.id)
+  .select();
+
+console.log("PROFILE UPDATE RESULT:", updated);
 
 if (updated.error) {
   console.error("PROFILE UPDATE ERROR:", updated.error);
