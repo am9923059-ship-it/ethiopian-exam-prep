@@ -295,6 +295,38 @@ body{
   }
 }
 </style>
+
+<style>
+.stream-select{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin:10px 0 20px;
+}
+
+.stream-btn{
+  padding:15px;
+  border:1px solid #444;
+  border-radius:14px;
+  background:#1b1b1b;
+  color:#fff;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.stream-btn.active{
+  border:2px solid #4caf50;
+  background:#12351a;
+}
+
+@media(max-width:600px){
+  .stream-select{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+
 </head>
 
 <body>
@@ -408,7 +440,27 @@ body{
 
 
   <h3>
-    Subjects
+    Choose Your Stream
+  </h3>
+
+  <div class="stream-select">
+
+    <button class="stream-btn"
+            id="naturalStream"
+            onclick="selectStream('Natural Science')">
+      🧪 Natural Science
+    </button>
+
+    <button class="stream-btn"
+            id="socialStream"
+            onclick="selectStream('Social Science')">
+      🌍 Social Science
+    </button>
+
+  </div>
+
+  <h3>
+    Main Subjects
   </h3>
 
   <div id="subjects"
@@ -673,6 +725,91 @@ const subjects = [
   "Aptitude (SAT)"
 ];
 
+const naturalSubjects = [
+  "English",
+  "Mathematics",
+  "Aptitude (SAT)",
+  "Physics",
+  "Chemistry",
+  "Biology"
+];
+
+const socialSubjects = [
+  "English",
+  "Mathematics",
+  "Aptitude (SAT)",
+  "Geography",
+  "History",
+  "Economics"
+];
+
+const additionalSubjects = [
+  "Civics",
+  "General Knowledge"
+];
+
+let selectedStream = null;
+
+async function selectStream(stream){
+
+  selectedStream = stream;
+
+  const subjectsToShow =
+    stream === "Natural Science"
+    ? naturalSubjects
+    : socialSubjects;
+
+  if(user){
+
+    const { error } = await sb
+      .from("profiles")
+      .update({
+        stream: stream
+      })
+      .eq("id", user.id);
+
+    if(error){
+      console.error("STREAM UPDATE ERROR:", error);
+      alert("Stream save error: " + error.message);
+      return;
+    }
+  }
+
+  const container = $("subjects");
+
+  container.innerHTML =
+    subjectsToShow
+      .map((subject) => {
+
+        const i = subjects.indexOf(subject);
+
+        return `
+          <button class="subject"
+                  onclick="start('${subject}')">
+
+            <span>
+              ${icons[i] || "📚"}
+            </span>
+
+            <b>${subject}</b>
+
+          </button>
+        `;
+
+      })
+      .join("");
+
+  $("naturalStream").classList.toggle(
+    "active",
+    stream === "Natural Science"
+  );
+
+  $("socialStream").classList.toggle(
+    "active",
+    stream === "Social Science"
+  );
+}
+
 
 const icons = [
   "📖",
@@ -697,6 +834,7 @@ let correct = 0;
 let solved = 0;
 let mode = "practice";
 let pool = [];
+let currentSubject = null;
 
 
 const $ =
@@ -981,8 +1119,8 @@ async function dash(){
 
 
   $("best").textContent =
-    p?.best_score
-    ? `${p.best_score}/${p.best_total}`
+    p?.main_total
+    ? `${p.main_total}/600`
     : "—";
 
 
@@ -993,10 +1131,53 @@ async function dash(){
   $("correct").textContent =
     p?.correct_answers || 0;
 
+
+  if(p?.stream){
+
+    selectedStream = p.stream;
+
+    const subjectsToShow =
+      p.stream === "Natural Science"
+      ? naturalSubjects
+      : socialSubjects;
+
+    $("subjects").innerHTML =
+      subjectsToShow
+        .map((subject) => {
+
+          const i = subjects.indexOf(subject);
+
+          return `
+            <button class="subject"
+                    onclick="start('${subject}')">
+
+              <span>${icons[i] || "📚"}</span>
+
+              <b>${subject}</b>
+
+            </button>
+          `;
+
+        })
+        .join("");
+
+    $("naturalStream").classList.toggle(
+      "active",
+      p.stream === "Natural Science"
+    );
+
+    $("socialStream").classList.toggle(
+      "active",
+      p.stream === "Social Science"
+    );
+  }
+
 }
 
 
 function start(subject,isMock=false){
+
+  currentSubject = subject;
 
   mode =
     isMock
@@ -1180,11 +1361,46 @@ if (Number(correct) > oldBest) {
 }
 
 
+let subjectScores = p?.subject_scores || {};
+
+if (currentSubject) {
+  const subjectPercent =
+    Number(((correct / pool.length) * 100).toFixed(2));
+
+  subjectScores[currentSubject] = subjectPercent;
+}
+
+const mainSubjects =
+  p?.stream === "Social Science"
+  ? socialSubjects
+  : naturalSubjects;
+
+const mainScores =
+  mainSubjects.map(
+    subject => Number(subjectScores[subject] || 0)
+  );
+
+const completedMainSubjects =
+  mainSubjects.filter(
+    subject => subjectScores[subject] !== undefined
+  );
+
+const mainTotal =
+  completedMainSubjects.length === 6
+  ? Number(
+      mainScores
+        .reduce((sum,score) => sum + score, 0)
+        .toFixed(2)
+    )
+  : 0;
+
 const updated = await sb
   .from("profiles")
   .update({
-    best_score: newBest,
-    best_total: pool.length,
+    subject_scores: subjectScores,
+    main_total: mainTotal,
+    best_score: mainTotal,
+    best_total: 600,
     questions_solved: (p?.questions_solved || 0) + solved,
     correct_answers: (p?.correct_answers || 0) + correct
   })
@@ -1316,114 +1532,384 @@ $("board").onclick =
       await sb
         .from("profiles")
         .select(
-          "id,full_name,best_score,best_total"
-        )
-        .order(
-          "best_score",
-          {ascending:false}
-        )
-        .limit(100);
+          "id,full_name,stream,main_total,subject_scores"
+        );
+
+    if(r.error){
+      console.error("LEADERBOARD ERROR:",r.error);
+      $("list").innerHTML =
+        `<div class="card">
+          Leaderboard error: ${r.error.message}
+        </div>`;
+      return;
+    }
 
     let rows = r.data || [];
 
-    let myIndex =
-      rows.findIndex(
-        p => p.id === user.id
-      );
+    const renderStream = (stream, title, subjects) => {
 
-    $("list").innerHTML =
-      (myIndex >= 0
-        ? `<div class="card"
-                style="margin-bottom:12px;text-align:center;">
-             <b>🏆 Your Rank: #${myIndex + 1}</b>
-           </div>`
-        : "") +
+      let data =
+        rows
+          .filter(p =>
+            p.stream === stream &&
+            Number(p.main_total || 0) > 0
+          )
+          .sort(
+            (a,b) =>
+              Number(b.main_total || 0) -
+              Number(a.main_total || 0)
+          );
 
-      rows
-      .map(
-        (p,i) =>
-        `<div class="row"
-              style="
-                display:grid;
-                grid-template-columns:50px 1fr auto;
-                align-items:center;
-                gap:10px;
-                margin-bottom:8px;
-                padding:12px;
-                border-radius:14px;
-                background:rgba(255,255,255,.05);
-              ">
+      let myIndex =
+        data.findIndex(
+          p => p.id === user.id
+        );
 
-          <div class="rank"
-               style="font-size:${i<3 ? "25px" : "15px"};
-                      text-align:center;">
-            ${
-              i<3
-              ? ["🥇","🥈","🥉"][i]
-              : "#"+(i+1)
-            }
-          </div>
+      let html = `
+        <div class="card"
+             style="margin:14px 0;text-align:center;">
+          <h3 style="margin:0 0 5px;">
+            ${title}
+          </h3>
+          <small class="muted">
+            Main Result • /600
+          </small>
+        </div>
+      `;
 
-          <div>
-            <b>${p.full_name}</b>
-            <div class="muted"
-                 style="font-size:11px;margin-top:3px;">
-              Rank #${i+1}
+      if(myIndex >= 0){
+
+        html += `
+          <div class="card"
+               style="margin-bottom:12px;text-align:center;">
+            <b>🏆 Your Rank: #${myIndex + 1}</b>
+            <div style="margin-top:5px;">
+              ${Number(data[myIndex].main_total).toFixed(2)}/600
             </div>
           </div>
+        `;
 
-          <div class="score">
-            <b>${p.best_score}</b>/${p.best_total}
+      }
+
+      if(!data.length){
+
+        html += `
+          <div class="card"
+               style="text-align:center;">
+            No ${stream} results yet.
           </div>
+        `;
 
-        </div>`
-      )
-      .join("");
+        return html;
+      }
+
+      html += data.map((p,i) => {
+
+        const scores =
+          p.subject_scores || {};
+
+        const subjectLines =
+          subjects
+            .map(
+              subject =>
+                `<span style="margin-right:8px;">
+                  ${subject}: ${Number(scores[subject] || 0).toFixed(2)}
+                </span>`
+            )
+            .join("");
+
+        const passed =
+          Number(p.main_total || 0) >= 300;
+
+        return `
+          <div class="row"
+               style="
+                 display:block;
+                 margin-bottom:8px;
+                 padding:12px;
+                 border-radius:14px;
+                 background:rgba(255,255,255,.05);
+               ">
+
+            <div style="
+              display:grid;
+              grid-template-columns:50px 1fr auto;
+              align-items:center;
+              gap:10px;
+            ">
+
+              <div class="rank"
+                   style="
+                     font-size:${i<3 ? "25px" : "15px"};
+                     text-align:center;
+                   ">
+                ${
+                  i<3
+                  ? ["🥇","🥈","🥉"][i]
+                  : "#"+(i+1)
+                }
+              </div>
+
+              <div>
+                <b>${p.full_name || "Student"}</b>
+
+                <div class="muted"
+                     style="font-size:11px;margin-top:3px;">
+                  Rank #${i+1}
+                </div>
+              </div>
+
+              <div class="score"
+                   style="text-align:right;">
+                <b>${Number(p.main_total || 0).toFixed(2)}</b>/600
+
+                <div style="
+                  font-size:10px;
+                  margin-top:3px;
+                ">
+                  ${passed ? "✅ Passed" : "❌ Not Passed"}
+                </div>
+              </div>
+
+            </div>
+
+            <div class="muted"
+                 style="
+                   font-size:10px;
+                   line-height:1.8;
+                   margin-top:8px;
+                   padding-top:7px;
+                   border-top:1px solid rgba(255,255,255,.08);
+                 ">
+              ${subjectLines}
+            </div>
+
+          </div>
+        `;
+
+      }).join("");
+
+      return html;
+    };
+
+    $("list").innerHTML =
+      renderStream(
+        "Natural Science",
+        "🧪 Natural Science",
+        naturalSubjects
+      ) +
+
+      renderStream(
+        "Social Science",
+        "🌍 Social Science",
+        socialSubjects
+      );
 
   };
-
 
 $("profile").onclick =
   async () => {
 
     show("profileview");
 
-
     let p =
       await profile();
 
+    const stream =
+      p?.stream || "Not Selected";
 
-    $("pbox").innerHTML =
-      `<h2>
-        ${p?.full_name||"Student"}
+    const mainSubjects =
+      stream === "Social Science"
+      ? socialSubjects
+      : naturalSubjects;
+
+    const scores =
+      p?.subject_scores || {};
+
+    const completed =
+      mainSubjects.filter(
+        subject => scores[subject] !== undefined
+      ).length;
+
+    const total =
+      completed === 6
+      ? Number(
+          mainSubjects
+            .reduce(
+              (sum,subject) =>
+                sum + Number(scores[subject] || 0),
+              0
+            )
+            .toFixed(2)
+        )
+      : Number(p?.main_total || 0);
+
+    const status =
+      completed < 6
+      ? "⏳ Result Incomplete"
+      : total >= 300
+      ? "✅ PASSED"
+      : "❌ NOT PASSED";
+
+    const statusColor =
+      completed < 6
+      ? "#f5c542"
+      : total >= 300
+      ? "#35d07f"
+      : "#ff5c5c";
+
+    const mainRows =
+      mainSubjects
+        .map(subject => {
+
+          const score =
+            scores[subject];
+
+          return `
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              padding:11px 0;
+              border-bottom:1px solid rgba(255,255,255,.08);
+            ">
+              <span>${subject}</span>
+              <b>
+                ${
+                  score !== undefined
+                  ? Number(score).toFixed(2) + "/100"
+                  : "—"
+                }
+              </b>
+            </div>
+          `;
+
+        })
+        .join("");
+
+    const additionalRows =
+      additionalSubjects
+        .map(subject => {
+
+          const score =
+            scores[subject];
+
+          return `
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              padding:9px 0;
+            ">
+              <span>${subject}</span>
+              <b>
+                ${
+                  score !== undefined
+                  ? Number(score).toFixed(2) + "/100"
+                  : "—"
+                }
+              </b>
+            </div>
+          `;
+
+        })
+        .join("");
+
+    $("pbox").innerHTML = `
+
+      <h2>
+        ${p?.full_name || "Student"}
       </h2>
 
       <p class="muted">
         ${user.email}
       </p>
 
-      <hr>
+      <div class="card"
+           style="
+             margin:16px 0;
+             text-align:center;
+             padding:20px;
+           ">
 
-      <p>
-        🏆 Best:
-        <b>
-          ${p?.best_score||0}/${p?.best_total||600}
-        </b>
-      </p>
+        <div class="muted">
+          GRADE 12 MAIN RESULT
+        </div>
 
-      <p>
-        📝 Solved:
-        <b>
-          ${p?.questions_solved||0}
-        </b>
-      </p>
+        <h1 style="
+          margin:8px 0;
+          font-size:38px;
+        ">
+          ${
+            completed === 6
+            ? total.toFixed(2)
+            : "—"
+          }
+          <small>/600</small>
+        </h1>
 
-      <p>
-        ✅ Correct:
-        <b>
-          ${p?.correct_answers||0}
+        <b style="
+          color:${statusColor};
+          font-size:16px;
+        ">
+          ${status}
         </b>
-      </p>`;
+
+        <div class="muted"
+             style="margin-top:7px;">
+          ${stream}
+        </div>
+
+      </div>
+
+      <h3>
+        Main Subjects
+      </h3>
+
+      <div class="card">
+        ${mainRows}
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          padding-top:14px;
+          margin-top:5px;
+          font-size:17px;
+        ">
+          <b>TOTAL</b>
+          <b>
+            ${
+              completed === 6
+              ? total.toFixed(2)
+              : "—"
+            }/600
+          </b>
+        </div>
+      </div>
+
+      <h3 style="margin-top:22px;">
+        Additional Subjects
+      </h3>
+
+      <div class="card">
+        ${additionalRows}
+      </div>
+
+      <div class="card"
+           style="margin-top:18px;">
+
+        <p>
+          📝 Solved:
+          <b>${p?.questions_solved || 0}</b>
+        </p>
+
+        <p>
+          ✅ Correct:
+          <b>${p?.correct_answers || 0}</b>
+        </p>
+
+      </div>
+
+    `;
 
   };
 
