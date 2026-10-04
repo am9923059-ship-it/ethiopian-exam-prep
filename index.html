@@ -843,7 +843,7 @@ const $ =
 
 function show(x, fromBack = false){
 
-  ["login","home","exam","boardview","profileview"]
+  ["login","home","exam","result","boardview","profileview"]
   .forEach(
     y =>
     $(y).classList.toggle("hide", y !== x)
@@ -1412,7 +1412,7 @@ console.log("PROFILE UPDATE RESULT:", updated);
 if (updated.error) {
   console.error("PROFILE UPDATE ERROR:", updated.error);
   alert("Profile update error: " + updated.error.message);
-  return;
+  // return;
 }
 
 console.log("PROFILE UPDATED");
@@ -1468,8 +1468,9 @@ console.log("PROFILE UPDATED");
  $("resultMessage").textContent =
    message;
 
+ show("result");
 
- show("resultview");
+
 
     }
 
@@ -1503,6 +1504,7 @@ $("mock").onclick =
 
 $("random").onclick = () => {
   mode = "practice";
+  currentSubject = null;
 
   pool = [...qs]
     .sort(() => Math.random() - 0.5)
