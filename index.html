@@ -1510,7 +1510,7 @@ $("board").onclick =
     show("boardview");
 
     let r =
-      sb
+      await sb
         .from("profiles")
         .select(
           "id,full_name,stream,main_total,subject_scores"
