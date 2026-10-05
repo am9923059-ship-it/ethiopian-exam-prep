@@ -761,7 +761,7 @@ async function selectStream(stream){
 
   if(user){
 
-    const { error } = await sb
+    const { error } = sb
       .from("profiles")
       .update({
         stream: stream
@@ -975,6 +975,7 @@ $("auth").onclick = async () => {
   let e =
     $("email").value.trim();
 
+      alert("NEXT ELSE REACHED");
   let p =
     $("pass").value;
 
@@ -1089,7 +1090,7 @@ $("pb").onclick =
 async function profile(){
 
   let r =
-    await sb
+    sb
       .from("profiles")
       .select("*")
       .eq("id",user.id)
@@ -1110,6 +1111,7 @@ async function dash(){
   show("home");
 
 
+      alert("NEXT ELSE REACHED");
   let p =
     await profile();
 
@@ -1341,146 +1343,120 @@ function answer(i){
 }
 
 
-$("next").onclick =
-  async () => {
+$("next").onclick = async () => {
 
-    if(idx < pool.length-1){
+  if(idx < pool.length - 1){
 
-      idx++;
+    idx++;
+    chosen = null;
+    render();
+    return;
+  }
 
-      chosen = null;
+  // ===== EXAM FINISHED =====
 
-      render();
+  const total = pool.length;
+  const score = correct;
+  const percent = Math.round((score / total) * 100);
 
-    }else{
+  console.log("EXAM FINISHED:", {
+    score,
+    total,
+    percent,
+    subject: currentSubject,
+    mode
+  });
 
-      let p =
-        await profile();
+  // Save statistics
+  if(user && sb){
 
+    const p = await profile();
 
-      let oldBest = Number(p?.best_score || 0);
-let newBest = oldBest;
+    let subjectScores =
+      p?.subject_scores || {};
 
-if (Number(correct) > oldBest) {
-  newBest = Number(correct);
-}
-
-
-let subjectScores = p?.subject_scores || {};
-
-if (currentSubject) {
-  const subjectPercent =
-    Number(((correct / pool.length) * 100).toFixed(2));
-
-  subjectScores[currentSubject] = subjectPercent;
-}
-
-const mainSubjects =
-  p?.stream === "Social Science"
-  ? socialSubjects
-  : naturalSubjects;
-
-const mainScores =
-  mainSubjects.map(
-    subject => Number(subjectScores[subject] || 0)
-  );
-
-const completedMainSubjects =
-  mainSubjects.filter(
-    subject => subjectScores[subject] !== undefined
-  );
-
-const mainTotal =
-  completedMainSubjects.length === 6
-  ? Number(
-      mainScores
-        .reduce((sum,score) => sum + score, 0)
-        .toFixed(2)
-    )
-  : 0;
-
-const updated = await sb
-  .from("profiles")
-  .update({
-    subject_scores: subjectScores,
-    main_total: mainTotal,
-    best_score: mainTotal,
-    best_total: 600,
-    questions_solved: (p?.questions_solved || 0) + solved,
-    correct_answers: (p?.correct_answers || 0) + correct
-  })
-  .eq("id", user.id)
-  .select();
-
-console.log("PROFILE UPDATE RESULT:", updated);
-
-if (updated.error) {
-  console.error("PROFILE UPDATE ERROR:", updated.error);
-  alert("Profile update error: " + updated.error.message);
-  // return;
-}
-
-console.log("PROFILE UPDATED");
-
-      if(mode === "mock"){
-
-        await sb
-          .from("exam_results")
-          .insert({
-
-            user_id:user.id,
-
-            score:correct,
-
-            total:pool.length,
-
-            subject:"Mock Exam"
-
-          });
-
-      }
-
-
- $("resultExam").textContent =
-  mode === "mock"
-  ? "Mock Exam"
-  : "Practice";
-
- $("resultScore").textContent =
-  `${correct}/${pool.length}`;
-
- $("resultPercent").textContent =
-  `${Math.round((correct / pool.length) * 100)}%`;
-
- $("resultCorrect").textContent =
-  correct;
-
- $("resultWrong").textContent =
-  `❌ Wrong: ${pool.length - correct}`;
-
- let percent =
-   Math.round((correct / pool.length) * 100);
-
- let message =
-   percent >= 80
-   ? "🔥 Excellent! Keep it up!"
-   : percent >= 60
-   ? "👏 Great Job! You are improving!"
-   : percent >= 40
-   ? "💪 Keep Practicing!"
-   : "📚 More Practice Needed.";
-
- $("resultMessage").textContent =
-   message;
-
- show("resultview");
-
-
-
+    if(currentSubject){
+      subjectScores[currentSubject] =
+        Number(
+          ((score / total) * 100).toFixed(2)
+        );
     }
 
-  };
+    const stream =
+      p?.stream || selectedStream;
 
+    const mainSubjects =
+      stream === "Social Science"
+      ? socialSubjects
+      : naturalSubjects;
+
+    const completed =
+      mainSubjects.filter(
+        subject =>
+          subjectScores[subject] !== undefined
+      );
+
+    const mainTotal =
+      completed.length === 6
+      ? Number(
+          mainSubjects
+            .reduce(
+              (sum, subject) =>
+                sum +
+                Number(subjectScores[subject] || 0),
+              0
+            )
+            .toFixed(2)
+        )
+      : 0;
+
+    const oldBest =
+      Number(p?.best_score || 0);
+
+    const newBest =
+      Math.max(oldBest, score);
+
+    const updated =
+      await sb
+        .from("profiles")
+        .update({
+          subject_scores: subjectScores,
+          main_total: mainTotal,
+          best_score: newBest,
+          best_total: 600,
+          questions_solved:
+            Number(p?.questions_solved || 0) + solved,
+          correct_answers:
+            Number(p?.correct_answers || 0) + correct
+        })
+        .eq("id", user.id);
+
+    console.log("PROFILE UPDATED:", updated);
+
+  }
+
+  // ===== SHOW RESULT =====
+
+  $("resultExam").textContent =
+    mode === "mock"
+    ? "Mock Exam"
+    : currentSubject || "Practice";
+
+  $("resultScore").textContent =
+    `${score}/${total}`;
+
+  $("resultPercent").textContent =
+    `${percent}%`;
+
+  $("resultCorrect").textContent =
+    score;
+
+  $("resultWrong").textContent =
+    `❌ Wrong: ${total - score}`;
+
+  show("resultview");
+
+};
 
 $("tryAgain").onclick = () => {
 
@@ -1536,7 +1512,7 @@ $("board").onclick =
     show("boardview");
 
     let r =
-      await sb
+      sb
         .from("profiles")
         .select(
           "id,full_name,stream,main_total,subject_scores"
@@ -1719,6 +1695,7 @@ $("profile").onclick =
 
     show("profileview");
 
+      alert("NEXT ELSE REACHED");
     let p =
       await profile();
 
@@ -2168,7 +2145,7 @@ return;
 
 }
 
-const {error}=await sb
+const {error}=sb
 .from("feedback")
 .insert({
 
