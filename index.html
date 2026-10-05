@@ -1229,6 +1229,7 @@ function start(subject,isMock=false){
     : subject;
 
 
+  alert("START OK: " + subject + " | POOL: " + pool.length);
   show("exam");
 
   render();
@@ -1485,6 +1486,7 @@ console.log("PROFILE UPDATED");
 
 $("tryAgain").onclick = () => {
 
+  alert("START OK: " + subject + " | POOL: " + pool.length);
   show("exam");
 
   idx = 0;
@@ -1527,6 +1529,7 @@ $("random").onclick = () => {
   solved = 0;
 
   $("exname").textContent = "Random Practice";
+  alert("START OK: " + subject + " | POOL: " + pool.length);
   show("exam");
   render();
 };
