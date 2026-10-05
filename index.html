@@ -1124,10 +1124,9 @@ async function dash(){
 
 
   $("best").textContent =
-    p?.main_total
-    ? `${p.main_total}/600`
+    p?.best_score !== undefined
+    ? `${p.best_score}/${p.best_total || 20}`
     : "—";
-
 
   $("solved").textContent =
     p?.questions_solved || 0;
