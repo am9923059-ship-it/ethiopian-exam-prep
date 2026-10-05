@@ -1089,7 +1089,7 @@ $("pb").onclick =
 async function profile(){
 
   let r =
-    sb
+    await sb
       .from("profiles")
       .select("*")
       .eq("id",user.id)
