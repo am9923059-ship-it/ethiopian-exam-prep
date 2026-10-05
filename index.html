@@ -1532,17 +1532,34 @@ $("board").onclick =
       let data =
         rows
           .filter(p =>
-            p.stream === stream &&
-            Number(p.main_total || 0) > 0
-          )
-          .sort(
-            (a,b) =>
-              Number(b.main_total || 0) -
-              Number(a.main_total || 0)
+            p.stream === stream
           );
 
+      const isComplete = (p) => {
+        const scores = p.subject_scores || {};
+        return subjects.filter(
+          subject => scores[subject] !== undefined
+        ).length === 6;
+      };
+
+      data.sort((a,b) => {
+        const ac = isComplete(a);
+        const bc = isComplete(b);
+
+        if(ac !== bc)
+          return bc - ac;
+
+        return Number(b.main_total || 0) -
+               Number(a.main_total || 0);
+      });
+
+      let rankedData =
+        data.filter(
+          p => Number(p.main_total || 0) > 0
+        );
+
       let myIndex =
-        data.findIndex(
+        rankedData.findIndex(
           p => p.id === user.id
         );
 
@@ -1565,7 +1582,7 @@ $("board").onclick =
                style="margin-bottom:12px;text-align:center;">
             <b>🏆 Your Rank: #${myIndex + 1}</b>
             <div style="margin-top:5px;">
-              ${Number(data[myIndex].main_total).toFixed(2)}/600
+              ${Number(rankedData[myIndex].main_total).toFixed(2)}/600
             </div>
           </div>
         `;
@@ -1599,7 +1616,17 @@ $("board").onclick =
             )
             .join("");
 
+        const completedCount =
+          subjects.filter(
+            subject =>
+              scores[subject] !== undefined
+          ).length;
+
+        const complete =
+          completedCount === 6;
+
         const passed =
+          complete &&
           Number(p.main_total || 0) >= 300;
 
         return `
@@ -1642,13 +1669,21 @@ $("board").onclick =
 
               <div class="score"
                    style="text-align:right;">
-                <b>${Number(p.main_total || 0).toFixed(2)}</b>/600
+                ${
+                  complete
+                  ? `<b>${Number(p.main_total || 0).toFixed(2)}</b>/600`
+                  : `<b>${completedCount}/6</b> subjects`
+                }
 
                 <div style="
                   font-size:10px;
                   margin-top:3px;
                 ">
-                  ${passed ? "✅ Passed" : "❌ Not Passed"}
+                  ${
+                    complete
+                    ? (passed ? "✅ Passed" : "❌ Not Passed")
+                    : "📚 In Progress"
+                  }
                 </div>
               </div>
 
