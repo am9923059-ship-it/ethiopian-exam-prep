@@ -1431,6 +1431,7 @@ $("next").onclick = async () => {
         })
         .eq("id", user.id);
 
+    alert(updated.error ? "SAVE ERROR: " + updated.error.message : "SAVE SUCCESS");
     console.log("PROFILE UPDATED:", updated);
 
   }
