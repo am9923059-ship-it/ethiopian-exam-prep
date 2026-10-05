@@ -870,7 +870,6 @@ async function init(){
       .catch(e => { console.error("QUESTIONS LOAD ERROR:", e); return []; });
 
 
-  alert("QUESTIONS: " + qs.length + "\nENGLISH: " + qs.filter(q => q.subject === "English").length);
 
   $("subjects").innerHTML =
     subjects
@@ -1229,7 +1228,6 @@ function start(subject,isMock=false){
     : subject;
 
 
-  alert("START OK | POOL: " + pool.length);
   show("exam");
 
   render();
@@ -1238,7 +1236,6 @@ function start(subject,isMock=false){
 
 
 function render(){
-  alert("RENDER START");
 
   let q =
     pool[idx];
@@ -1487,7 +1484,6 @@ console.log("PROFILE UPDATED");
 
 $("tryAgain").onclick = () => {
 
-  alert("START OK | POOL: " + pool.length);
   show("exam");
 
   idx = 0;
@@ -1530,7 +1526,6 @@ $("random").onclick = () => {
   solved = 0;
 
   $("exname").textContent = "Random Practice";
-  alert("START OK | POOL: " + pool.length);
   show("exam");
   render();
 };
