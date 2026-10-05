@@ -867,8 +867,10 @@ async function init(){
   qs =
     await fetch("questions.json")
       .then(r => r.json())
-      .catch(() => []);
+      .catch(e => { console.error("QUESTIONS LOAD ERROR:", e); return []; });
 
+
+  alert("QUESTIONS: " + qs.length + "\nENGLISH: " + qs.filter(q => q.subject === "English").length);
 
   $("subjects").innerHTML =
     subjects
@@ -1095,6 +1097,10 @@ async function profile(){
       .limit(1);
 
 
+  console.log("PROFILE QUERY:", r);
+  if(r.error){
+    console.error("PROFILE READ ERROR:", r.error);
+  }
   return r.data?.[0] || null;
 
 }
