@@ -2563,6 +2563,22 @@ id="feedbackText"
 placeholder="Write your feedback here..."
 ></textarea>
 
+<div style="margin-top:15px;padding:15px;border:1px solid #ddd;border-radius:12px;">
+  <div style="font-weight:bold;margin-bottom:10px;">🎙️ Voice Feedback</div>
+
+  <button type="button" id="recordVoiceBtn" onclick="startVoiceRecording()">
+    🎙️ Record
+  </button>
+
+  <button type="button" id="stopVoiceBtn" onclick="stopVoiceRecording()" disabled>
+    ⏹️ Stop
+  </button>
+
+  <p id="voiceStatus" style="margin:10px 0;"></p>
+
+  <audio id="voicePreview" controls style="width:100%;display:none;"></audio>
+</div>
+
 <div class="feedback-actions">
 
 <button onclick="closeFeedback()">
@@ -2592,6 +2608,69 @@ function closeFeedback(){
 document.getElementById("feedbackBox").style.display="none";
 
 document.getElementById("feedbackMsg").textContent="";
+
+}
+
+let voiceBlob = null;
+let mediaRecorder = null;
+let audioChunks = [];
+
+async function startVoiceRecording(){
+
+const status = document.getElementById("voiceStatus");
+const recordBtn = document.getElementById("recordVoiceBtn");
+const stopBtn = document.getElementById("stopVoiceBtn");
+
+try{
+
+const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+
+audioChunks = [];
+mediaRecorder = new MediaRecorder(stream);
+
+mediaRecorder.ondataavailable = e => {
+  if(e.data.size > 0) audioChunks.push(e.data);
+};
+
+mediaRecorder.onstop = () => {
+
+  voiceBlob = new Blob(audioChunks, {type:"audio/webm"});
+
+  const url = URL.createObjectURL(voiceBlob);
+
+  const preview = document.getElementById("voicePreview");
+  preview.src = url;
+  preview.style.display = "block";
+
+  stream.getTracks().forEach(track => track.stop());
+
+  status.textContent = "✅ Voice recorded. You can listen before sending.";
+
+};
+
+mediaRecorder.start();
+
+recordBtn.disabled = true;
+stopBtn.disabled = false;
+status.textContent = "🔴 Recording...";
+
+}catch(err){
+
+console.error(err);
+status.textContent = "❌ Microphone permission is required.";
+
+}
+
+}
+
+function stopVoiceRecording(){
+
+if(mediaRecorder && mediaRecorder.state !== "inactive"){
+  mediaRecorder.stop();
+}
+
+document.getElementById("recordVoiceBtn").disabled = false;
+document.getElementById("stopVoiceBtn").disabled = true;
 
 }
 
@@ -2628,13 +2707,41 @@ return;
 
 }
 
-const {error}=sb
+let voicePath = null;
+
+if(voiceBlob){
+
+  const fileName =
+    user.id + "/" + Date.now() + ".webm";
+
+  const {error:uploadError} =
+    await sb.storage
+      .from("feedback-voice")
+      .upload(fileName, voiceBlob, {
+        contentType: "audio/webm",
+        upsert: false
+      });
+
+  if(uploadError){
+
+    console.error(uploadError);
+    msg.textContent = "VOICE ERROR: " + uploadError.message;
+    return;
+
+  }
+
+  voicePath = fileName;
+
+}
+
+const {error}=await sb
 .from("feedback")
 .insert({
 
 user_id:user.id,
 
-message:text
+message:text,
+voice_path:voicePath
 
 });
 
@@ -2650,6 +2757,12 @@ return;
 msg.textContent="✅ Feedback sent successfully!";
 
 document.getElementById("feedbackText").value="";
+
+voiceBlob = null;
+
+document.getElementById("voicePreview").style.display="none";
+document.getElementById("voicePreview").src="";
+document.getElementById("voiceStatus").textContent="";
 
 setTimeout(()=>{
 
