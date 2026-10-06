@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback Admin</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f5f7fb;
+  color:#111827;
+}
+
+.container{
+  max-width:800px;
+  margin:auto;
+  padding:20px;
+}
+
+h1{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+#loginMsg{
+  text-align:center;
+  margin-top:40px;
+}
+
+.feedback{
+  background:white;
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:16px;
+  box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+
+.name{
+  font-weight:bold;
+  font-size:18px;
+}
+
+.date{
+  color:#6b7280;
+  font-size:13px;
+  margin:6px 0 12px;
+}
+
+.message{
+  margin:12px 0;
+  white-space:pre-wrap;
+}
+
+audio{
+  width:100%;
+  margin-top:10px;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+.actions a{
+  text-decoration:none;
+  background:#2563eb;
+  color:white;
+  padding:10px 15px;
+  border-radius:10px;
+  font-weight:bold;
+}
+
+.empty{
+  text-align:center;
+  color:#6b7280;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>💬 Feedback Admin</h1>
+
+<div id="loginMsg">Checking access...</div>
+
+<div id="feedbackList"></div>
+
+</div>
+
+<script>
+
+const sb = supabase.createClient(
+  window.SUPABASE_URL,
+  window.SUPABASE_ANON_KEY
+);
+
+const OWNER_EMAIL = "am9923059@gmail.com";
+
+
+async function loadFeedback(){
+
+  const loginMsg =
+    document.getElementById("loginMsg");
+
+  const list =
+    document.getElementById("feedbackList");
+
+
+  const {
+    data:{user},
+    error:userError
+  } = await sb.auth.getUser();
+
+
+  if(userError || !user){
+
+    loginMsg.textContent =
+      "🔒 Please login first.";
+
+    return;
+  }
+
+
+  if(user.email !== OWNER_EMAIL){
+
+    loginMsg.textContent =
+      "❌ Access denied.";
+
+    return;
+  }
+
+
+  loginMsg.textContent =
+    "Loading feedback...";
+
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("feedback")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+
+  if(error){
+
+    console.error(error);
+
+    loginMsg.textContent =
+      "ERROR: " + error.message;
+
+    return;
+  }
+
+
+  loginMsg.style.display="none";
+
+
+  if(!data || data.length === 0){
+
+    list.innerHTML =
+      '<div class="empty">No feedback yet.</div>';
+
+    return;
+  }
+
+
+  for(const item of data){
+
+    let voiceHTML = "";
+
+
+    if(item.voice_path){
+
+      const {
+        data:urlData,
+        error:urlError
+      } =
+      await sb.storage
+        .from("feedback-voice")
+        .createSignedUrl(
+          item.voice_path,
+          3600
+        );
+
+
+      if(!urlError && urlData?.signedUrl){
+
+        const url =
+          urlData.signedUrl;
+
+        voiceHTML = `
+
+          <div style="margin-top:15px;">
+            <strong>🎙️ Voice Feedback</strong>
+
+            <audio controls src="${url}"></audio>
+
+            <div class="actions">
+
+              <a
+                href="${url}"
+                download
+              >
+                ⬇️ Download
+              </a>
+
+            </div>
+          </div>
+
+        `;
+      }
+    }
+
+
+    const card =
+      document.createElement("div");
+
+    card.className="feedback";
+
+
+    card.innerHTML = `
+
+      <div class="name">
+        👤 User
+      </div>
+
+      <div class="date">
+        🕐 ${item.created_at
+          ? new Date(item.created_at).toLocaleString()
+          : ""}
+      </div>
+
+      <div class="message">
+        ${item.message || ""}
+      </div>
+
+      ${voiceHTML}
+
+    `;
+
+
+    list.appendChild(card);
+
+  }
+
+}
+
+
+loadFeedback();
+
+</script>
+
+</body>
+</html>
