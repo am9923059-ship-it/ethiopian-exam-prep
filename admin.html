@@ -129,14 +129,13 @@ async function loadFeedback(){
   }
 
 
-  if(user.email !== OWNER_EMAIL){
+if(user.email !== OWNER_EMAIL){
 
-    loginMsg.textContent =
-      "❌ Access denied.";
+  loginMsg.textContent =
+    "❌ Access denied. Logged email: " + user.email;
 
-    return;
-  }
-
+  return;
+}
 
   loginMsg.textContent =
     "Loading feedback...";
