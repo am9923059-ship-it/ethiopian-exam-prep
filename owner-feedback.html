@@ -228,23 +228,69 @@ async function loadFeedback(){
         name = profile.full_name;
       }
 
-      div.innerHTML = `
-        <div>
-          <strong>👤 Name:</strong>
-          ${name}
-        </div>
+let voiceHTML = "";
 
-        <div>
-          <strong>💬 Message:</strong>
-          ${item.message}
-        </div>
+if (item.voice_path) {
 
-        <div>
-          <strong>🕐 Date:</strong>
-          ${new Date(item.created_at).toLocaleString()}
-        </div>
-      `;
+  const { data: urlData, error: urlError } =
+    await sb.storage
+      .from("feedback-voice")
+      .createSignedUrl(item.voice_path, 3600);
 
+  if (!urlError && urlData?.signedUrl) {
+
+    const voiceURL = urlData.signedUrl;
+
+    voiceHTML = `
+      <div style="margin-top:15px;">
+        <strong>🎙️ Voice Feedback:</strong>
+
+        <audio
+          controls
+          src="${voiceURL}"
+          style="width:100%;margin-top:10px;">
+        </audio>
+
+        <div style="margin-top:10px;">
+          <a
+            href="${voiceURL}"
+            download="feedback-voice.webm"
+            style="
+              display:inline-block;
+              padding:10px 15px;
+              background:#2563eb;
+              color:white;
+              text-decoration:none;
+              border-radius:10px;
+              font-weight:bold;
+            ">
+            ⬇️ Download Voice
+          </a>
+        </div>
+      </div>
+    `;
+
+  }
+}
+
+div.innerHTML = `
+  <div>
+    <strong>👤 Name:</strong>
+    ${name}
+  </div>
+
+  <div>
+    <strong>💬 Message:</strong>
+    ${item.message || ""}
+  </div>
+
+  <div>
+    <strong>🕐 Date:</strong>
+    ${new Date(item.created_at).toLocaleString()}
+  </div>
+
+  ${voiceHTML}
+`;
       list.appendChild(div);
     }
 
