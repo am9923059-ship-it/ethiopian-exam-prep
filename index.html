@@ -2682,9 +2682,9 @@ document.getElementById("feedbackText").value.trim();
 const msg =
 document.getElementById("feedbackMsg");
 
-if(!text){
+if(!text && !voiceBlob){
 
-msg.textContent="Please write your feedback.";
+msg.textContent="Please write your feedback or record a voice message.";
 
 return;
 
