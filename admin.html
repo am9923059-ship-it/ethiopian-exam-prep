@@ -180,17 +180,69 @@ if(user.email !== OWNER_EMAIL){
 
     if(item.voice_path){
 
-      const {
-        data:urlData,
-        error:urlError
-      } =
-      await sb.storage
-        .from("feedback-voice")
-        .createSignedUrl(
-          item.voice_path,
-          3600
-        );
+const {
+  data:urlData,
+  error:urlError
+} =
+await sb.storage
+  .from("feedback-voice")
+  .createSignedUrl(
+    item.voice_path,
+    3600
+  );
 
+if(urlError){
+
+  console.error("VOICE URL ERROR:", urlError);
+
+  voiceHTML = `
+    <p style="color:red;">
+      ❌ Voice error: ${urlError.message}
+    </p>
+  `;
+
+}
+else if(urlData?.signedUrl){
+
+  const url = urlData.signedUrl;
+
+  voiceHTML = `
+
+    <div style="margin-top:15px;">
+
+      <strong>🎙️ Voice Feedback</strong>
+
+      <audio
+        controls
+        src="${url}"
+        style="width:100%;margin-top:10px;">
+      </audio>
+
+      <div class="actions">
+
+        <a
+          href="${url}"
+          download="feedback-voice.webm"
+        >
+          ⬇️ Download Voice
+        </a>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+else{
+
+  voiceHTML = `
+    <p style="color:red;">
+      ❌ Could not create voice URL.
+    </p>
+  `;
+
+}
 
       if(!urlError && urlData?.signedUrl){
 
