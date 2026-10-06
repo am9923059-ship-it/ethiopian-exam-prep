@@ -190,7 +190,7 @@ async function loadFeedback(){
     const { data, error } =
       await sb
         .from("feedback")
-        .select("id,message,created_at,user_id")
+.select("id,message,created_at,user_id,voice_path")
         .order("created_at", { ascending: false });
 
     if (error) {
